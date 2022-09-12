@@ -15,6 +15,7 @@ class PurchaseOrder
 		@purchase_order
 	end
 
+  # mocking method for purchase order output
 	def export
 		File.write("./purchase_order_#{@purchase_order['purchase_order_ref']}.json", JSON.dump(@purchase_order))
 	end

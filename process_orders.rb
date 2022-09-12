@@ -23,6 +23,7 @@ class Fulfillment
 		orders = get_orders(order_ids)
 		products = get_products
 
+    # iterate through orders and order_items, change order status, create purchase orders
 		orders.each do |order|
 			fulfilled_order_items = []
 			order_items = order['items']
@@ -66,10 +67,11 @@ class Fulfillment
 			end
 		end
 
+		# saving updated data file
 		File.write('./updated_products_and_orders_' + Time.now.to_i.to_s + '.json', JSON.dump(@data))
 		puts 'Unfulfillable order IDs are ' + unfulfillable_order_ids.join(", ")
-		unfulfillable_order_ids
 		# return array of unfulfilled order IDs 
+    unfulfillable_order_ids
 	end
 
 	private
@@ -100,8 +102,8 @@ class Fulfillment
 			existing_orders << existing_order
 		end
 
+    # return array of all order IDs
 		existing_orders
-		# return array of all order IDs
 	end
 end
 
