@@ -1,4 +1,5 @@
 require 'json'
+require_relative 'purchase_order'
 
 # file_path = './data.json'
 file_path = ARGV[0]
@@ -16,9 +17,8 @@ class Fulfillment
 	end
 
 	def process_orders(order_ids)
-		puts 'order_ids'
-		puts order_ids
 		unfulfillable_order_ids = []
+		purchase_orders = []
 
 		orders = get_orders(order_ids)
 		products = get_products
@@ -32,6 +32,27 @@ class Fulfillment
 
 				if product['quantityOnHand'] >= order_item['quantity']
 					fulfilled_order_items << order_item
+
+					if product['quantityOnHand'] - order_item['quantity'] <= product['reorderThreshold']
+						purchase_order = PurchaseOrder.new({ 
+							'productId' => product['productId'],
+							'reorderAmount'=> product['reorderAmount']
+						})
+
+            purchase_order.create
+
+						# puts 'new po pid'
+						# puts purchase_order.access['product_id']
+						# puts 'product'
+						# puts product['productId'].to_s
+
+						existing_purchase_order = purchase_orders.detect {|po| po.access['product_id'] == product['productId']}
+
+						if existing_purchase_order.nil?
+							purchase_orders << purchase_order
+							purchase_order.export
+						end
+					end
 				end
 			end
 
@@ -51,7 +72,7 @@ class Fulfillment
 		end
 
 		File.write('./updated_products_orders_' + Time.now.to_i.to_s + '.json', JSON.dump(@data))
-
+		puts 'Unfulfillable order IDs are ' + unfulfillable_order_ids.join(", ")
 		unfulfillable_order_ids
 		# return array of unfulfilled order IDs 
 	end
@@ -89,16 +110,12 @@ class Fulfillment
 	end
 end
 
-class PurchaseOrder
-
-end
-
 fulfill = Fulfillment.new(data)
 # oids = fulfill.get_orders(data)
 # unfulfilable_oids = fulfill.process_orders(oids)
 # puts ARGV[1].split(",")
 if ARGV[1]
 	fulfill.process_orders(ARGV[1].split(","))
+else
+	raise 'missing a list of order IDs'
 end
-
-# puts data
