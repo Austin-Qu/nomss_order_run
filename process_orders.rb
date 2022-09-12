@@ -33,21 +33,16 @@ class Fulfillment
 				if product['quantityOnHand'] >= order_item['quantity']
 					fulfilled_order_items << order_item
 
-					if product['quantityOnHand'] - order_item['quantity'] <= product['reorderThreshold']
+					if product['quantityOnHand'] - order_item['quantity'] < product['reorderThreshold']
 						purchase_order = PurchaseOrder.new({ 
 							'productId' => product['productId'],
 							'reorderAmount'=> product['reorderAmount']
 						})
 
             purchase_order.create
-
-						# puts 'new po pid'
-						# puts purchase_order.access['product_id']
-						# puts 'product'
-						# puts product['productId'].to_s
-
 						existing_purchase_order = purchase_orders.detect {|po| po.access['product_id'] == product['productId']}
-
+						
+						# assuming only creating purchase order for the first time meeting reorder threshold
 						if existing_purchase_order.nil?
 							purchase_orders << purchase_order
 							purchase_order.export
@@ -71,7 +66,7 @@ class Fulfillment
 			end
 		end
 
-		File.write('./updated_products_orders_' + Time.now.to_i.to_s + '.json', JSON.dump(@data))
+		File.write('./updated_products_and_orders_' + Time.now.to_i.to_s + '.json', JSON.dump(@data))
 		puts 'Unfulfillable order IDs are ' + unfulfillable_order_ids.join(", ")
 		unfulfillable_order_ids
 		# return array of unfulfilled order IDs 
@@ -111,9 +106,7 @@ class Fulfillment
 end
 
 fulfill = Fulfillment.new(data)
-# oids = fulfill.get_orders(data)
-# unfulfilable_oids = fulfill.process_orders(oids)
-# puts ARGV[1].split(",")
+
 if ARGV[1]
 	fulfill.process_orders(ARGV[1].split(","))
 else

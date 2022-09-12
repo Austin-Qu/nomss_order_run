@@ -16,8 +16,7 @@ class PurchaseOrder
 	end
 
 	def export
-		puts '==export=='
-		File.write("./purchase_order_#{@purchase_order['purchase_order_ref']}_" + Time.now.to_i.to_s + '.json', JSON.dump(@purchase_order), mode: 'a')
+		File.write("./purchase_order_#{@purchase_order['purchase_order_ref']}.json", JSON.dump(@purchase_order))
 	end
 
 	def access
